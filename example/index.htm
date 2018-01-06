@@ -311,6 +311,68 @@
         anchor: 'center left'
       });
 
+      a.push({
+        id: 'scale-0',
+        tooltip: 'No auto scale',
+        scale: false,
+        circle: 20,
+        svgStyle: {
+          fill: 'rgba(0, 0, 0, 0.4)'
+        },
+        longitude: -0.2,
+        latitude: -0.4
+      });
+
+      a.push({
+        id: 'scale-1',
+        tooltip: 'Auto scale',
+        scale: 2,
+        circle: 20,
+        svgStyle: {
+          fill: 'rgba(0, 0, 0, 0.5)'
+        },
+        longitude: -0.1,
+        latitude: -0.4
+      });
+
+      a.push({
+        id: 'scale-2',
+        tooltip: 'Reverse auto scale',
+        scale: 0.5,
+        circle: 20,
+        svgStyle: {
+          fill: 'rgba(0, 0, 0, 0.6)'
+        },
+        longitude: 0,
+        latitude: -0.4
+      });
+
+      a.push({
+        id: 'scale-3',
+        tooltip: 'Ranged auto scale',
+        scale: [0.5, 1.5],
+        circle: 20,
+        svgStyle: {
+          fill: 'rgba(0, 0, 0, 0.7)'
+        },
+        longitude: 0.1,
+        latitude: -0.4
+      });
+
+      a.push({
+        id: 'scale-4',
+        tooltip: 'Function auto scale',
+        scale: function(zoomLevel) {
+          return Math.cos(zoomLevel / 50 * Math.PI) / 2 + 1;
+        },
+        circle: 20,
+        svgStyle: {
+          fill: 'rgba(0, 0, 0, 0.8)'
+        },
+        longitude: 0.2,
+        latitude: -0.4
+      });
+
       return a;
     }())
   });

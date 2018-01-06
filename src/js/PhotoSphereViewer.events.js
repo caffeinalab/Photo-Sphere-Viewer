@@ -124,6 +124,10 @@ PhotoSphereViewer.prototype._onKeyDown = function(evt) {
  * @private
  */
 PhotoSphereViewer.prototype._onMouseDown = function(evt) {
+  if (evt.button !== 0 || evt.ctrlKey || evt.shiftKey || evt.altKey || evt.metaKey) {
+    return;
+  }
+
   this._startMove(evt);
 };
 

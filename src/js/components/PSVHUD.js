@@ -367,15 +367,19 @@ PSVHUD.prototype.renderMarkers = function() {
 
       if (isVisible) {
         marker.position2D = position;
+        var scale = marker.getScale(this.psv.getZoomLevel());
 
-        if (marker.$el instanceof SVGElement) {
-          marker.$el.setAttribute('transform', 'translate(' + position.x + ' ' + position.y + ')' +
-            (!marker.lockRotation && rotation ? ' rotate(' + rotation + ' ' + (marker.anchor.left * marker.width) + ' ' + (marker.anchor.top * marker.height) + ')' : ''));
+        if (marker.isSvg()) {
+          marker.$el.setAttributeNS(null, 'transform',
+            'translate(' + position.left + ', ' + position.top + ')' +
+            (scale !== 1 ? ' scale(' + scale + ', ' + scale + ')' : '') +
+            (!marker.lockRotation && rotation ? ' rotate(' + rotation + ')' : '')
+          );
         }
         else {
-          marker.$el.style.transform = 'translate3D(' + position.x + 'px, ' + position.y + 'px, ' + '0px)' +
+          marker.$el.style.transform = 'translate3D(' + position.left + 'px, ' + position.top + 'px, ' + '0px)' +
+            (scale !== 1 ? ' scale(' + scale + ', ' + scale + ')' : '') +
             (!marker.lockRotation && rotation ? ' rotateZ(' + rotation + 'deg)' : '');
-          marker.$el.style.transformOrigin = marker.anchor.left * 100 + '% ' + marker.anchor.top * 100 + '%';
         }
       }
     }

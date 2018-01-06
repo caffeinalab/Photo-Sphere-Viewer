@@ -188,6 +188,16 @@ PSVMarker.prototype.isSvg = function() {
   return this.type == 'rect' || this.type == 'circle' || this.type == 'ellipse' || this.type == 'path';
 };
 
+PSVMarker.prototype.getScale = function(zoomLevel) {
+  if (Array.isArray(this.scale)) {
+    return this.scale[0] + (this.scale[1] - this.scale[0]) / 100 * zoomLevel;
+  }
+  else if (typeof this.scale == 'function') {
+    return this.scale(zoomLevel);
+  }
+  return 1;
+};
+
 /**
  * @summary Updates the marker with new properties
  * @param {object} [properties]
@@ -263,6 +273,9 @@ PSVMarker.prototype._updateNormal = function() {
   else {
     this.$el.innerHTML = this.html;
   }
+
+  // set anchor
+  this.$el.style.transformOrigin = this.anchor.left * 100 + '% ' + this.anchor.top * 100 + '%';
 
   // convert texture coordinates to spherical coordinates
   this.psv.cleanPosition(this);
