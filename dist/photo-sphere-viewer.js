@@ -1,5 +1,5 @@
 /*!
- * Photo Sphere Viewer 3.2.4
+ * Photo Sphere Viewer 3.3.0-CAFFEINA
  * Copyright (c) 2014-2015 Jérémy Heleine
  * Copyright (c) 2015-2018 Damien "Mistic" Sorel
  * Licensed under MIT (http://opensource.org/licenses/MIT)
@@ -343,6 +343,8 @@ function PhotoSphereViewer(options) {
    * @property {int} start_mouse_y - start y position of the click/touch
    * @property {int} mouse_x - current x position of the cursor
    * @property {int} mouse_y - current y position of the cursor
+   * @property {int} gyro_angle_alpha - current angle alpha offset value
+   * @property {int} gyro_angle_beta - current angle beta offset value
    * @property {Array[]} mouse_history - list of latest positions of the cursor, [time, x, y]
    * @property {int} pinch_dist - distance between fingers when zooming
    * @property orientation_reqid - animationRequest id of the device orientation
@@ -374,6 +376,8 @@ function PhotoSphereViewer(options) {
     mouse_x: 0,
     mouse_y: 0,
     mouse_history: [],
+    gyro_angle_alpha: 0,
+    gyro_angle_beta: 0,
     pinch_dist: 0,
     orientation_reqid: null,
     autorotate_reqid: null,
@@ -1622,11 +1626,8 @@ PhotoSphereViewer.prototype._onTouchMove = function(evt) {
  * @private
  */
 PhotoSphereViewer.prototype._startMove = function(evt) {
-  if (this.isGyroscopeEnabled()) {
-    return;
-  }
-
-  this._stopAll();
+  this.stopAutorotate();
+  this.stopAnimation();
 
   this.prop.mouse_x = this.prop.start_mouse_x = parseInt(evt.clientX);
   this.prop.mouse_y = this.prop.start_mouse_y = parseInt(evt.clientY);
@@ -1660,11 +1661,6 @@ PhotoSphereViewer.prototype._startZoom = function(evt) {
  * @private
  */
 PhotoSphereViewer.prototype._stopMove = function(evt) {
-  if (this.isGyroscopeEnabled()) {
-    this._click(evt);
-    return;
-  }
-
   if (this.prop.moving) {
     // move threshold to trigger a click
     if (Math.abs(evt.clientX - this.prop.start_mouse_x) < PhotoSphereViewer.MOVE_THRESHOLD && Math.abs(evt.clientY - this.prop.start_mouse_y) < PhotoSphereViewer.MOVE_THRESHOLD) {
@@ -1793,10 +1789,17 @@ PhotoSphereViewer.prototype._move = function(evt, log) {
     var x = parseInt(evt.clientX);
     var y = parseInt(evt.clientY);
 
-    this.rotate({
-      longitude: this.prop.longitude - (x - this.prop.mouse_x) / this.prop.size.width * this.prop.move_speed * this.prop.hFov,
-      latitude: this.prop.latitude + (y - this.prop.mouse_y) / this.prop.size.height * this.prop.move_speed * this.prop.vFov
-    });
+    // If the the gyroscope tick is running, only save the offset angle
+    if (this.isGyroscopeEnabled()) {
+      this.prop.gyro_angle_alpha += (x - this.prop.mouse_x) / this.prop.size.width * this.prop.move_speed * this.prop.hFov;
+      this.prop.gyro_angle_beta += (y - this.prop.mouse_y) / this.prop.size.width * this.prop.move_speed * this.prop.hFov;
+    }
+    else {
+      this.rotate({
+        longitude: this.prop.longitude - (x - this.prop.mouse_x) / this.prop.size.width * this.prop.move_speed * this.prop.hFov,
+        latitude: this.prop.latitude + (y - this.prop.mouse_y) / this.prop.size.height * this.prop.move_speed * this.prop.vFov
+      });
+    }
 
     this.prop.mouse_x = x;
     this.prop.mouse_y = y;
@@ -2237,6 +2240,9 @@ PhotoSphereViewer.prototype.startGyroscopeControl = function() {
 
   (function run() {
     self.doControls.update();
+    self.doControls.updateAlphaOffsetAngle(self.prop.gyro_angle_alpha);
+    self.doControls.updateBetaOffsetAngle(self.prop.gyro_angle_beta);
+
     self.prop.direction = self.camera.getWorldDirection();
 
     var sphericalCoords = self.vector3ToSphericalCoords(self.prop.direction);
